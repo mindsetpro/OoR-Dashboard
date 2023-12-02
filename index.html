@@ -26,42 +26,25 @@
             color: #fff; /* Button text color */
         }
     </style>
-</head>
-<body>
+  <header>
+    <h1>OoR Fight Vids Bot Dashboard</h1>
+  </header>
 
-    <header>
-        <h1>OoR Fight Vids Bot Dashboard</h1>
-    </header>
+  <section id="login">
+    <button onclick="loginWithDiscord()">Login with Discord</button>
+  </section>
 
-  <section id="server-select">
-    <label for="servers">Choose a Server:</label>
+  <section id="server-select" style="display:none;">
+    <label for="user-id">Enter your Discord User ID:</label>
+    <input type="text" id="user-id" name="user-id">
+    <button onclick="getServers()">Get Servers</button>
+    <label for="servers">Your Servers:</label>
     <select id="servers"></select>
   </section>
 
-  <script>
-    // JavaScript
-    fetch('/api/servers')
-      .then(res => res.json())
-      .then(populateServers);
-
-    function populateServers(servers) {
-      const select = document.getElementById('servers');
-
-      select.innerHTML = ''; // Clear current options
-
-      const placeholder = document.createElement('option');
-      placeholder.value = '';
-      placeholder.text = 'Select a Server';
-      select.appendChild(placeholder);
-
-      servers.forEach(server => {
-        let option = document.createElement('option');
-        option.value = server.id;
-        option.text = server.name;
-        select.appendChild(option);
-      });
-    }
-  </script>
+  <script src="script.js"></script>
+</body>
+</html>
 
   <section id="config">
     <h2>Configuration</h2>
