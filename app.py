@@ -1,93 +1,87 @@
+from flask import Flask, render_template, jsonify, request, redirect
 import os
-from flask import Flask, render_template
-import discord
-from discord.ext import commands
-from bs4 import BeautifulSoup
 import requests
-import asyncio
-
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix=";", intents=intents)
-
-channel_id = 1180258553227903137
-sent_videos = set()
-sent_videos_file = "sent_videos.txt"
-
-async def read_sent_videos():
-    try:
-        with open(sent_videos_file, "r") as file:
-            return set(file.read().splitlines())
-    except FileNotFoundError:
-        return set()
-
-async def write_sent_video(video_id):
-    with open(sent_videos_file, "a") as file:
-        file.write(video_id + "\n")
-
-@bot.command()
-async def fight(ctx):
-    channel = bot.get_channel(channel_id)
-
-    response = requests.get("https://t.me/s/onlyfighting/random")
-    webpage = response.text
-    soup = BeautifulSoup(webpage, 'html.parser')
-
-    video_tags = soup.find_all('video')
-
-    sent_videos = await read_sent_videos()
-
-    for i, video_tag in enumerate(video_tags[:3]):
-        video_url = video_tag['src']
-        video_id = video_tag.get('id') or video_url
-
-        if video_id in sent_videos:
-            continue
-
-        sent_videos.add(video_id)
-        await write_sent_video(video_id)
-
-        file_name = f"video{i}.mp4"
-
-        response = requests.get(video_url)
-        with open(file_name, 'wb') as f:
-            f.write(response.content)
-
-        await channel.send(file=discord.File(file_name))
-        os.remove(file_name)
-
-@bot.event
-async def on_member_join(member):
-    channel_id = 1180244347233501328
-    welcome_channel = bot.get_channel(channel_id)
-
-    if welcome_channel:
-        welcome_message = (
-            f"Welcome to Out of Racks, {member.mention}!\n"
-            f"- Check out <#1180258553227903137>\n"
-            f"  - Make sure to stay active!\n"
-            f"- only real mfs\n"
-        )
-
-        embed = discord.Embed(description=welcome_message, color=0xc22bf1)
-        embed.set_image(url="https://cdn.discordapp.com/attachments/1071729494391529522/1071744392064421908/image0.gif")
-        embed.set_footer(text="Out of Racks Remake")
-
-        await welcome_channel.send(embed=embed)
 
 app = Flask(__name__)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+# Replace these with your Discord application credentials
+CLIENT_ID = "1177696282932945077"
+CLIENT_SECRET = "zTHtnpYUIOKtzT2s9Qs-jMLLtut6tadS"
+REDIRECT_URI = "https://mindsetpro.github.io/OoR-Dashboard/"
+DISCORD_API_URL = "https://discord.com/api/v10"
 
-async def run_bot():
-    TOKEN = os.getenv("TOKEN")
-    await bot.start(TOKEN)
+# Specify the server ID to exclude
+EXCLUDED_SERVER_ID = 1180244346696634419
 
 @app.before_first_request
 def activate_bot():
     loop = asyncio.get_event_loop()
     loop.create_task(run_bot())
+
+async def fetch_user_servers(user_id):
+    if user_id not in server_data:
+        await fetch_server_data(user_id)
+
+@app.route('/api/servers', methods=['POST'])
+async def get_servers():
+    user_id = request.json.get('user_id')
+
+    # Fetch the user's servers if not already fetched
+    await fetch_user_servers(user_id)
+
+    return jsonify({"servers": server_data.get(user_id, [])})
+
+
+@app.route('/login')
+def login():
+    return redirect(f"{DISCORD_API_URL}/oauth2/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code&scope=identify")
+
+@app.route('/callback')
+def callback():
+    code = request.args.get('code')
+    data = {
+        'client_id': CLIENT_ID,
+        'client_secret': CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': REDIRECT_URI,
+        'scope': 'identify'
+    }
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.post(f"{DISCORD_API_URL}/oauth2/token", data=data, headers=headers)
+    json_response = response.json()
+    access_token = json_response.get('access_token')
+
+    if access_token:
+        user_info = get_user_info(access_token)
+        user_id = user_info.get('id')
+        return render_template('index.html', user_id=user_id)
+    else:
+        return "Authentication failed"
+
+def get_user_info(access_token):
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    response = requests.get(f"{DISCORD_API_URL}/users/@me", headers=headers)
+    return response.json()
+
+@app.route('/api/servers', methods=['POST'])
+def get_servers():
+    user_id = request.json.get('user_id')
+    user_servers = server_data.get(user_id, [])
+
+    # Exclude the specified server
+    user_servers = [server for server in user_servers if server != EXCLUDED_SERVER_ID]
+
+    return jsonify({"servers": user_servers})
+
+@app.route('/')
+def index():
+    user_id = request.args.get('user_id')
+    return render_template('index.html', user_id=user_id)
 
 if __name__ == '__main__':
     app.run(debug=True)
