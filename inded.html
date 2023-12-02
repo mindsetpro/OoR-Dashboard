@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Bot Dashboard</title>
+  
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+  <header>
+    <h1>OoR Fight Vids Bot Dashboard</h1>
+  </header>
+
+<body>
+
+  <section id="server-select">
+    <label for="servers">Choose a Server:</label>
+    <select id="servers"></select>
+  </section>
+
+  <script type="text/python">
+    @app.route("/api/servers")
+    def get_servers():
+        servers = []
+        for guild in bot.guilds:
+            servers.append({
+                "id": guild.id,
+                "name": guild.name
+            })
+        return jsonify(servers)
+  </script>
+
+  <script type="text/javascript">
+// Javascript
+
+fetch('/api/servers')
+.then(res => res.json())
+.then(populateServers);
+
+function populateServers(servers) {
+
+  const select = document.getElementById('servers');
+
+  select.innerHTML = ''; // Clear current options
+
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.text = 'Select a Server';
+  select.appendChild(placeholder);
+
+  servers.forEach(server => {
+    let option = document.createElement('option');
+    option.value = server.id;
+    option.text = server.name;
+    select.appendChild(option);
+  });
+
+}
+  </script>
+
+  <section id="config">
+    <h2>Configuration</h2>
+
+    <form id="prefix-form">
+      <label for="prefix">Prefix</label>  
+      <input type="text" id="prefix" name="prefix">
+      <button type="submit">Update Prefix</button>    
+    </form>
+    
+    <form id="mods-channel-form">
+      <label for="mods-channel">Mod Logs Channel:</label>    
+      <input type="text" id="mods-channel" name="channel_id">
+      <button type="submit">Save Channel</button>
+    </form>
+
+  </section>
+
+  <section id="moderation">
+
+    <h2>Moderation</h2>
+    
+    <div id="mod-logs">
+      <button id="get-logs">Refresh Logs</button>
+      <table id="mod-logs-table"></table>  
+    </div>
+
+    <form id="ban-user-form">
+      <input type="text" placeholder="User ID" name="user_id">
+      <button type="submit">Ban User</button>
+    </form>
+
+  </section>
+
+  <section id="custom-commands">
+
+    <h2>Custom Commands</h2>
+
+    <form id="add-command-form">
+      <input type="text" placeholder="Command Name" name="name">
+      <textarea placeholder="Command Response" name="response"></textarea> 
+      <button type="submit">Add Command</button>   
+    </form>
+
+    <table id="command-list">
+      <tr>
+        <th>Name</th>
+        <th>Response</th>
+        <th>Delete</th>  
+      </tr>
+    </table>
+
+  </section>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
