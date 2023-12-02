@@ -1,0 +1,54 @@
+/* Layout */
+body {
+  margin: 0;
+  font-family: Arial;  
+}
+
+header {
+  background: #2f3136;
+  color: white;
+  padding: 1rem;
+}
+
+section {
+  padding: 1rem;  
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+}
+
+input, select {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;  
+}
+
+button {
+  padding: 10px;
+  background: #7289da; 
+  border: none;
+  color: white; 
+  border-radius: 4px;
+} 
+
+/* Tables */
+table {
+  width: 100%;  
+  border-collapse: collapse; 
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: left; 
+}
+
+/* Misc */
+#mod-logs-table tr:nth-child(even) {
+  background: #f6f6f6;
+}
