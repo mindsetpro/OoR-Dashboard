@@ -1,109 +1,90 @@
-// Get list of custom commands
-fetch('/api/commands')
-  .then(res => res.json())
-  .then(commands => {
+// Function to handle Discord login
+function loginWithDiscord() {
+    window.location.href = '/login';
+}
 
-    // Populate custom command table 
-    commands.forEach(command => {
-      let row = `
-        <tr>
-          <td>${command.name}</td>
-          <td>${command.response}</td>
-          <td><button onclick="deleteCommand('${command.id}')">Delete</td>
-        </tr>
-      `;
-      document.getElementById('command-list').insertAdjacentHTML('beforeend', row); 
-    });
+// Function to get user's servers
+function getServers() {
+    const userId = document.getElementById('user-id').value;
 
-  });
+    fetch(`/api/servers?user_id=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+            const serversSelect = document.getElementById('servers');
+            serversSelect.innerHTML = ''; // Clear current options
 
-// Handle add command form  
-const form = document.getElementById('add-command-form');
-form.onsubmit = () => {
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.text = 'Select a Server';
+            serversSelect.appendChild(placeholder);
 
-  const name = form.name.value;
-  const response = form.response.value;
-  
-  fetch('/api/commands', {
-    method: 'POST',
-    body: JSON.stringify({
-      name, 
-      response
+            data.servers.forEach(server => {
+                const option = document.createElement('option');
+                option.value = server.id;
+                option.text = server.name;
+                serversSelect.appendChild(option);
+            });
+        });
+}
+
+// Function to handle adding a custom command
+function addCommand() {
+    const name = document.getElementById('command-name').value;
+    const response = document.getElementById('command-response').value;
+
+    fetch('/api/commands', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name,
+            response
+        })
     })
-  })
     .then(res => {
-      if (res.ok) {
-        location.reload(); 
-      }
+        if (res.ok) {
+            location.reload();
+        }
     });
+}
 
-  return false;
-};
-
-// Embed Builder
-const embedForm = document.getElementById('embed-form');
-embedForm.onsubmit = () => {
-
-  const title = embedForm.title.value; 
-  const description = embedForm.description.value;
-
-  // Make API call to Bot to send embed
-  fetch('/api/send-embed', {
-    method: 'POST',
-    body: JSON.stringify({
-      title,
-      description 
+// Function to handle deleting a custom command
+function deleteCommand(commandId) {
+    fetch(`/api/commands/${commandId}`, {
+        method: 'DELETE'
     })
-  });
-
-  return false;
-}; 
-
-// Get moderation logs
-document.getElementById('get-logs').onclick = () => {
-
-  fetch('/api/mod-logs')
-    .then(res => res.json())
-    .then(logs => {
-      
-      logs.forEach(log => {
-
-        const row = `
-          <tr>
-            <td>${log.action}</td>
-            <td>${log.moderator}</td>
-            <td>${log.user}</td>
-            <td>${log.date}</td>
-          </tr>
-        `;
-
-        document.getElementById('mod-logs-table').insertAdjacentHTML('beforeend', row);
-
-      });
-
-    });
-
-};
-
-// Ban user
-const banForm = document.getElementById('ban-user-form');
-
-banForm.onsubmit = () => {
-  
-  const user_id = banForm.user_id.value; 
-  
-  fetch('/api/ban', {
-    method: 'POST',
-    body: JSON.stringify({
-      user_id
-    })
-  })
     .then(res => {
-      if(res.ok) {
-        location.reload();
-      }
+        if (res.ok) {
+            location.reload();
+        }
     });
+}
 
-  return false;
+// On document ready
+document.addEventListener("DOMContentLoaded", function() {
+    // Fetch and populate user's servers on page load
+    fetch('/api/servers')
+        .then(res => res.json())
+        .then(data => {
+            const serversSelect = document.getElementById('servers');
+            serversSelect.innerHTML = ''; // Clear current options
 
-};
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.text = 'Select a Server';
+            serversSelect.appendChild(placeholder);
+
+            data.servers.forEach(server => {
+                const option = document.createElement('option');
+                option.value = server.id;
+                option.text = server.name;
+                serversSelect.appendChild(option);
+            });
+
+            // Show server selection section
+            document.getElementById('server-select').style.display = 'block';
+        });
+
+    // ... (any additional initialization code) ...
+});
