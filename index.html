@@ -1,218 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OoR Fight Vids Bot Dashboard</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
     <style>
         body {
-            background-color: #343a40; /* Bootstrap dark background color */
-            color: #adb5bd; /* Bootstrap light text color */
+            background-color: #343a40;
+            color: #adb5bd;
         }
+
         header {
-            background-color: #212529; /* Bootstrap dark header background color */
+            background-color: #212529;
             padding: 20px;
             text-align: center;
+            margin-bottom: 30px;
         }
+
         section {
             padding: 20px;
             margin: 20px 0;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
+
         button {
-            color: #fff; /* Button text color */
+            color: #fff;
+        }
+
+        #login {
+            text-align: center;
+        }
+
+        #server-select,
+        #config,
+        #moderation,
+        #custom-commands {
+            display: none;
         }
     </style>
-  <header>
-    <h1>OoR Fight Vids Bot Dashboard</h1>
-  </header>
+</head>
 
-  <section id="login">
-    <button onclick="loginWithDiscord()">Login with Discord</button>
-  </section>
+<body>
+    <header>
+        <h1>OoR Fight Vids Bot Dashboard</h1>
+    </header>
 
-  <section id="server-select" style="display:none;">
-    <label for="user-id">Enter your Discord User ID:</label>
-    <input type="text" id="user-id" name="user-id">
-    <button onclick="getServers()">Get Servers</button>
-    <label for="servers">Your Servers:</label>
-    <select id="servers"></select>
-  </section>
+    <section id="login">
+        <button class="btn btn-primary" onclick="loginWithDiscord()">Login with Discord</button>
+    </section>
 
-  <script src="script.js"></script>
-</body>
-</html>
+    <section id="server-select">
+        <div class="form-group">
+            <label for="user-id">Enter your Discord User ID:</label>
+            <input type="text" class="form-control" id="user-id" name="user-id">
+        </div>
+        <button class="btn btn-success" onclick="getServers()">Get Servers</button>
+        <label for="servers">Your Servers:</label>
+        <select class="form-control" id="servers"></select>
+    </section>
 
-  <section id="config">
-    <h2>Configuration</h2>
+    <section id="config">
+        <h2>Configuration</h2>
+        <form id="prefix-form">
+            <div class="form-group">
+                <label for="prefix">Prefix</label>
+                <input type="text" class="form-control" id="prefix" name="prefix">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Prefix</button>
+        </form>
 
-    <form id="prefix-form">
-      <label for="prefix">Prefix</label>
-      <input type="text" id="prefix" name="prefix">
-      <button type="submit">Update Prefix</button>
-    </form>
+        <form id="mods-channel-form">
+            <div class="form-group">
+                <label for="mods-channel">Mod Logs Channel:</label>
+                <input type="text" class="form-control" id="mods-channel" name="channel_id">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Channel</button>
+        </form>
+    </section>
 
-    <form id="mods-channel-form">
-      <label for="mods-channel">Mod Logs Channel:</label>
-      <input type="text" id="mods-channel" name="channel_id">
-      <button type="submit">Save Channel</button>
-    </form>
+    <section id="moderation">
+        <h2>Moderation</h2>
+        <div id="mod-logs">
+            <button id="get-logs" class="btn btn-secondary">Refresh Logs</button>
+            <table class="table" id="mod-logs-table"></table>
+        </div>
 
-  </section>
+        <form id="ban-user-form">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="User ID" name="user_id">
+            </div>
+            <button type="submit" class="btn btn-danger">Ban User</button>
+        </form>
+    </section>
 
-  <section id="moderation">
+    <section id="custom-commands">
+        <h2>Custom Commands</h2>
+        <form id="add-command-form">
+            <div class="form-group">
+                <input type="text" class="form-control" placeholder="Command Name" name="name">
+            </div>
+            <div class="form-group">
+                <textarea class="form-control" placeholder="Command Response" name="response"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">Add Command</button>
+        </form>
 
-    <h2>Moderation</h2>
+        <table class="table" id="command-list">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Response</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
 
-    <div id="mod-logs">
-      <button id="get-logs">Refresh Logs</button>
-      <table id="mod-logs-table"></table>
-    </div>
-
-    <form id="ban-user-form">
-      <input type="text" placeholder="User ID" name="user_id">
-      <button type="submit">Ban User</button>
-    </form>
-
-  </section>
-
-  <section id="custom-commands">
-
-    <h2>Custom Commands</h2>
-
-    <form id="add-command-form">
-      <input type="text" placeholder="Command Name" name="name">
-      <textarea placeholder="Command Response" name="response"></textarea>
-      <button type="submit">Add Command</button>
-    </form>
-
-    <table id="command-list">
-      <tr>
-        <th>Name</th>
-        <th>Response</th>
-        <th>Delete</th>
-      </tr>
-    </table>
-
-  </section>
-
-  <script>
-    // Bot Code
-    fetch('/api/commands')
-      .then(res => res.json())
-      .then(commands => {
-
-        // Populate custom command table
-        commands.forEach(command => {
-          let row = `
-            <tr>
-              <td>${command.name}</td>
-              <td>${command.response}</td>
-              <td><button onclick="deleteCommand('${command.id}')">Delete</td>
-            </tr>
-          `;
-          document.getElementById('command-list').insertAdjacentHTML('beforeend', row);
-        });
-
-      });
-
-    // Handle add command form
-    const form = document.getElementById('add-command-form');
-    form.onsubmit = () => {
-
-      const name = form.name.value;
-      const response = form.response.value;
-
-      fetch('/api/commands', {
-        method: 'POST',
-        body: JSON.stringify({
-          name,
-          response
-        })
-      })
-        .then(res => {
-          if (res.ok) {
-            location.reload();
-          }
-        });
-
-      return false;
-    };
-
-    // Embed Builder
-    const embedForm = document.getElementById('embed-form');
-    embedForm.onsubmit = () => {
-
-      const title = embedForm.title.value;
-      const description = embedForm.description.value;
-
-      // Make API call to Bot to send embed
-      fetch('/api/send-embed', {
-        method: 'POST',
-        body: JSON.stringify({
-          title,
-          description
-        })
-      });
-
-      return false;
-    };
-
-    // Get moderation logs
-    document.getElementById('get-logs').onclick = () => {
-
-      fetch('/api/mod-logs')
-        .then(res => res.json())
-        .then(logs => {
-
-          logs.forEach(log => {
-
-            const row = `
-              <tr>
-                <td>${log.action}</td>
-                <td>${log.moderator}</td>
-                <td>${log.user}</td>
-                <td>${log.date}</td>
-              </tr>
-            `;
-
-            document.getElementById('mod-logs-table').insertAdjacentHTML('beforeend', row);
-
-          });
-
-        });
-
-    };
-
-    // Ban user
-    const banForm = document.getElementById('ban-user-form');
-
-    banForm.onsubmit = () => {
-
-      const user_id = banForm.user_id.value;
-
-      fetch('/api/ban', {
-        method: 'POST',
-        body: JSON.stringify({
-          user_id
-        })
-      })
-        .then(res => {
-          if (res.ok) {
-            location.reload();
-          }
-        });
-
-      return false;
-
-    };
-  </script>
-
+    <script src="script.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
+
 </html>
