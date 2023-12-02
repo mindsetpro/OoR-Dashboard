@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,122 +7,91 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #343a40;
-            color: #adb5bd;
+            background-color: #343a40; /* Bootstrap dark background color */
+            color: #adb5bd; /* Bootstrap light text color */
         }
-
         header {
-            background-color: #212529;
+            background-color: #212529; /* Bootstrap dark header background color */
             padding: 20px;
             text-align: center;
-            margin-bottom: 30px;
+            color: #fff;
         }
-
         section {
             padding: 20px;
             margin: 20px 0;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            background-color: #ffffff; /* Bootstrap light background color */
+            color: #495057; /* Bootstrap dark text color */
         }
-
         button {
-            color: #fff;
+            color: #fff; /* Button text color */
         }
-
-        #login {
-            text-align: center;
+        label {
+            color: #212529; /* Bootstrap dark label color */
         }
-
-        #server-select,
-        #config,
-        #moderation,
-        #custom-commands {
-            display: none;
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
         }
     </style>
 </head>
-
 <body>
-    <header>
-        <h1>OoR Fight Vids Bot Dashboard</h1>
-    </header>
 
-    <section id="login">
-        <button class="btn btn-primary" onclick="loginWithDiscord()">Login with Discord</button>
-    </section>
+<header>
+    <h1>OoR Fight Vids Bot Dashboard</h1>
+</header>
 
-    <section id="server-select">
-        <div class="form-group">
-            <label for="user-id">Enter your Discord User ID:</label>
-            <input type="text" class="form-control" id="user-id" name="user-id">
-        </div>
-        <button class="btn btn-success" onclick="getServers()">Get Servers</button>
+<section id="login">
+    <button class="btn btn-primary" onclick="loginWithDiscord()">Login with Discord</button>
+</section>
+
+<section id="server-select" style="display:none;">
+    <div class="form-group">
+        <label for="user-id">Enter your Discord User ID:</label>
+        <input type="text" class="form-control" id="user-id" name="user-id">
+    </div>
+    <button class="btn btn-success" onclick="getServers()">Get Servers</button>
+    <div class="form-group">
         <label for="servers">Your Servers:</label>
-        <select class="form-control" id="servers"></select>
-    </section>
+        <select id="servers" class="form-control"></select>
+    </div>
+</section>
 
-    <section id="config">
-        <h2>Configuration</h2>
-        <form id="prefix-form">
-            <div class="form-group">
-                <label for="prefix">Prefix</label>
-                <input type="text" class="form-control" id="prefix" name="prefix">
-            </div>
-            <button type="submit" class="btn btn-primary">Update Prefix</button>
-        </form>
+<section id="config">
+    <h2>Configuration</h2>
 
-        <form id="mods-channel-form">
-            <div class="form-group">
-                <label for="mods-channel">Mod Logs Channel:</label>
-                <input type="text" class="form-control" id="mods-channel" name="channel_id">
-            </div>
-            <button type="submit" class="btn btn-primary">Save Channel</button>
-        </form>
-    </section>
-
-    <section id="moderation">
-        <h2>Moderation</h2>
-        <div id="mod-logs">
-            <button id="get-logs" class="btn btn-secondary">Refresh Logs</button>
-            <table class="table" id="mod-logs-table"></table>
+    <form id="prefix-form" class="mb-4">
+        <div class="form-group">
+            <label for="prefix">Prefix:</label>
+            <input type="text" class="form-control" id="prefix" name="prefix" placeholder="Enter prefix">
+            <small id="prefix-help" class="form-text text-muted">This will update the bot's command prefix.</small>
         </div>
+        <button type="submit" class="btn btn-primary">Update Prefix</button>
+    </form>
 
-        <form id="ban-user-form">
-            <div class="form-group">
-                <input type="text" class="form-control" placeholder="User ID" name="user_id">
-            </div>
-            <button type="submit" class="btn btn-danger">Ban User</button>
-        </form>
-    </section>
+    <form id="mods-channel-form" class="mb-4">
+        <div class="form-group">
+            <label for="mods-channel">Mod Logs Channel:</label>
+            <input type="text" class="form-control" id="mods-channel" name="channel_id" placeholder="Enter channel ID">
+            <small id="mods-channel-help" class="form-text text-muted">This will save the mod logs channel.</small>
+        </div>
+        <button type="submit" class="btn btn-success">Save Channel</button>
+    </form>
 
-    <section id="custom-commands">
-        <h2>Custom Commands</h2>
-        <form id="add-command-form">
-            <div class="form-group">
-                <input type="text" class="form-control" placeholder="Command Name" name="name">
-            </div>
-            <div class="form-group">
-                <textarea class="form-control" placeholder="Command Response" name="response"></textarea>
-            </div>
-            <button type="submit" class="btn btn-success">Add Command</button>
-        </form>
+</section>
+    
+<script src="script.js"></script>
 
-        <table class="table" id="command-list">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Response</th>
-                    <th>Delete</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </section>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
-    <script src="script.js"></script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
-
 </html>
