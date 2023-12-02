@@ -1,10 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>My Bot Dashboard</title>
-  
+  <title>OoR</title>
   <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
@@ -13,64 +11,47 @@
     <h1>OoR Fight Vids Bot Dashboard</h1>
   </header>
 
-<body>
-
   <section id="server-select">
     <label for="servers">Choose a Server:</label>
     <select id="servers"></select>
   </section>
 
-  <script type="text/python">
-    @app.route("/api/servers")
-    def get_servers():
-        servers = []
-        for guild in bot.guilds:
-            servers.append({
-                "id": guild.id,
-                "name": guild.name
-            })
-        return jsonify(servers)
-  </script>
+  <script>
+    // JavaScript
+    fetch('/api/servers')
+      .then(res => res.json())
+      .then(populateServers);
 
-  <script type="text/javascript">
-// Javascript
+    function populateServers(servers) {
+      const select = document.getElementById('servers');
 
-fetch('/api/servers')
-.then(res => res.json())
-.then(populateServers);
+      select.innerHTML = ''; // Clear current options
 
-function populateServers(servers) {
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.text = 'Select a Server';
+      select.appendChild(placeholder);
 
-  const select = document.getElementById('servers');
-
-  select.innerHTML = ''; // Clear current options
-
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.text = 'Select a Server';
-  select.appendChild(placeholder);
-
-  servers.forEach(server => {
-    let option = document.createElement('option');
-    option.value = server.id;
-    option.text = server.name;
-    select.appendChild(option);
-  });
-
-}
+      servers.forEach(server => {
+        let option = document.createElement('option');
+        option.value = server.id;
+        option.text = server.name;
+        select.appendChild(option);
+      });
+    }
   </script>
 
   <section id="config">
     <h2>Configuration</h2>
 
     <form id="prefix-form">
-      <label for="prefix">Prefix</label>  
+      <label for="prefix">Prefix</label>
       <input type="text" id="prefix" name="prefix">
-      <button type="submit">Update Prefix</button>    
+      <button type="submit">Update Prefix</button>
     </form>
-    
+
     <form id="mods-channel-form">
-      <label for="mods-channel">Mod Logs Channel:</label>    
+      <label for="mods-channel">Mod Logs Channel:</label>
       <input type="text" id="mods-channel" name="channel_id">
       <button type="submit">Save Channel</button>
     </form>
@@ -80,10 +61,10 @@ function populateServers(servers) {
   <section id="moderation">
 
     <h2>Moderation</h2>
-    
+
     <div id="mod-logs">
       <button id="get-logs">Refresh Logs</button>
-      <table id="mod-logs-table"></table>  
+      <table id="mod-logs-table"></table>
     </div>
 
     <form id="ban-user-form">
@@ -99,21 +80,212 @@ function populateServers(servers) {
 
     <form id="add-command-form">
       <input type="text" placeholder="Command Name" name="name">
-      <textarea placeholder="Command Response" name="response"></textarea> 
-      <button type="submit">Add Command</button>   
+      <textarea placeholder="Command Response" name="response"></textarea>
+      <button type="submit">Add Command</button>
     </form>
 
     <table id="command-list">
       <tr>
         <th>Name</th>
         <th>Response</th>
-        <th>Delete</th>  
+        <th>Delete</th>
       </tr>
     </table>
 
   </section>
 
-  <script src="script.js"></script>
+  <script>
+    // Bot Code
+    fetch('/api/commands')
+      .then(res => res.json())
+      .then(commands => {
+
+        // Populate custom command table
+        commands.forEach(command => {
+          let row = `
+            <tr>
+              <td>${command.name}</td>
+              <td>${command.response}</td>
+              <td><button onclick="deleteCommand('${command.id}')">Delete</td>
+            </tr>
+          `;
+          document.getElementById('command-list').insertAdjacentHTML('beforeend', row);
+        });
+
+      });
+
+    // Handle add command form
+    const form = document.getElementById('add-command-form');
+    form.onsubmit = () => {
+
+      const name = form.name.value;
+      const response = form.response.value;
+
+      fetch('/api/commands', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          response
+        })
+      })
+        .then(res => {
+          if (res.ok) {
+            location.reload();
+          }
+        });
+
+      return false;
+    };
+
+    // Embed Builder
+    const embedForm = document.getElementById('embed-form');
+    embedForm.onsubmit = () => {
+
+      const title = embedForm.title.value;
+      const description = embedForm.description.value;
+
+      // Make API call to Bot to send embed
+      fetch('/api/send-embed', {
+        method: 'POST',
+        body: JSON.stringify({
+          title,
+          description
+        })
+      });
+
+      return false;
+    };
+
+    // Get moderation logs
+    document.getElementById('get-logs').onclick = () => {
+
+      fetch('/api/mod-logs')
+        .then(res => res.json())
+        .then(logs => {
+
+          logs.forEach(log => {
+
+            const row = `
+              <tr>
+                <td>${log.action}</td>
+                <td>${log.moderator}</td>
+                <td>${log.user}</td>
+                <td>${log.date}</td>
+              </tr>
+            `;
+
+            document.getElementById('mod-logs-table').insertAdjacentHTML('beforeend', row);
+
+          });
+
+        });
+
+    };
+
+    // Ban user
+    const banForm = document.getElementById('ban-user-form');
+
+    banForm.onsubmit = () => {
+
+      const user_id = banForm.user_id.value;
+
+      fetch('/api/ban', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id
+        })
+      })
+        .then(res => {
+          if (res.ok) {
+            location.reload();
+          }
+        });
+
+      return false;
+
+    };
+  </script>
 
 </body>
 </html>
+
+<!-- Python Code (Bot) -->
+```python
+import discord
+from discord.ext import commands, tasks
+from bs4 import BeautifulSoup
+import requests
+import asyncio
+import os
+
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix=";", intents=intents)
+
+channel_id = 1180258553227903137
+
+sent_videos = set()
+sent_videos_file = "sent_videos.txt"
+
+async def read_sent_videos():
+    try:
+        with open(sent_videos_file, "r") as file:
+            return set(file.read().splitlines())
+    except FileNotFoundError:
+        return set()
+
+async def write_sent_video(video_id):
+    with open(sent_videos_file, "a") as file:
+        file.write(video_id + "\n")
+
+@bot.command()
+async def fight(ctx):
+    channel = bot.get_channel(channel_id)
+
+    response = requests.get("https://t.me/s/onlyfighting/random")
+    webpage = response.text
+    soup = BeautifulSoup(webpage, 'html.parser')
+
+    video_tags = soup.find_all('video')
+
+    sent_videos = await read_sent_videos()
+
+    for i, video_tag in enumerate(video_tags[:3]):
+        video_url = video_tag['src']
+        video_id = video_tag.get('id') or video_url
+
+        if video_id in sent_videos:
+            continue
+
+        sent_videos.add(video_id)
+        await write_sent_video(video_id)
+
+        file_name = f"video{i}.mp4"
+
+        response = requests.get(video_url)
+        with open(file_name, 'wb') as f:
+            f.write(response.content)
+
+        await channel.send(file=discord.File(file_name))
+        os.remove(file_name)
+
+@bot.event
+async def on_member_join(member):
+    channel_id = 1180244347233501328
+    welcome_channel = bot.get_channel(channel_id)
+
+    if welcome_channel:
+        welcome_message = (
+            f"Welcome to Out of Racks, {member.mention}!\n"
+            f"- Check out <#1180258553227903137>\n"
+            f"  - Make sure to stay active!\n"
+            f"- only real mfs\n"
+        )
+
+        embed = discord.Embed(description=welcome_message, color=0xc22bf1)  # Set color to #c22bf1
+        embed.set_image(url="https://cdn.discordapp.com/attachments/1071729494391529522/1071744392064421908/image0.gif")
+        embed.set_footer(text="Out of Racks Remake")
+
+        await welcome_channel.send(embed=embed)
+
+TOKEN = os.getenv("TOKEN")
+bot.run(TOKEN)
